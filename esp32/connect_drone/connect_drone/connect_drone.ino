@@ -53,7 +53,6 @@ const int[12] CMD_LENGTH = {
   1, // TURN_L = 11
 }
 
-
 // IPAddress host(192, 168, 0, 1);
 const char * host = "192.168.0.1";
 const uint16_t port = 40000;
@@ -95,31 +94,15 @@ void setup()
 
 void loop() 
 {
-  WiFiClient client;
-  print_wifi_status();
-  // check if the client is connected and if not try to reconnect the client
-  if(!client.connected()) {
-    if(!connect_to_drone()) {
-      delay(500);
-      return;
-    }
-  }
-  // client is conntected to drone
-  
-  // if the connection is fresh - send init command
-  if(fresh_connect) {
-    // sending init command for communication start - no time required as the command only gets send once
-    client.print(CMDS[0]);
-  }
 
-  // send series
-  send_series(client);
-  // send_command(client, ...);
+/*
+ * TODO: 
+ * - check for BLE connection to wristband
+ * - check then what command is coming and with that send the correct command to the drone
+ */
+  // TODO: getting the IMU signals via bluetooth and one is client.stop();
 
-
-  
-
-  // client.stop();
+  drone();
 }
 
 // Check the current connection and connect to the drone
@@ -153,12 +136,13 @@ bool connect_to_drone() {
   return true;
 }
 
+// TODO: Check if i want to do send_command like this
+
 // send command and everything that is included with it
 void send_command(WiFiClient client, String cmd) {
   last_cmd = millis();
   client.print(cmd);
 }
-
 // send command and everything that is included with it
 void send_command_with_number(WiFiClient client, int cmd_number) {
   last_cmd = millis();
@@ -194,7 +178,34 @@ void send_series(client) {
       delay(POLLING_RATE - since_last_frame);
     }
     last_frame = millis();
+  }
+}
 
+// the main method for the drone stuff
+// TODO: command parameter coming from the IMU and so on
+void drone()
+{
+  WiFiClient client;
+  
+  // check if the client is connected and if not try to reconnect the client
+  if(!client.connected()) {
+    if(!connect_to_drone()) {
+      delay(500);
+      return;
+    }
+    print_wifi_status();
+  }
+  // client is conntected to drone
+  
+  // if the connection is fresh - send init command
+  if(fresh_connect) {
+    // sending init command for communication start - no time required as the command only gets send once
+    client.print(CMDS[0]);
   }
 
+  // TODO: sort this out for IMU messages
+  // send series of commands to drone
+  send_series(client);
 }
+
+
