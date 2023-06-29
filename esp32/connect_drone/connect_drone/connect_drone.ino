@@ -39,18 +39,18 @@ const String[12] CDMS = {
 // define how long every command should take - only IDLE, START and LAND need other time measures
 // TODO: after the start and stop command their should come at least 1 bzw. 3 seconds idle signal before the connection is closed, so that the drone has enough time to stop.
 const int[12] CMD_LENGTH = {
-  0, // INIT
-  1, // IDLE
-  2, // START
-  4, // LAND
-  1, // FWD
-  1, // BWD
-  1, // RIGHT
-  1, // LEFT
-  1, // UP
-  1, // DOWN
-  1, // TURN_R
-  1, // TURN_L
+  0, // INIT = 0
+  1, // IDLE = 1
+  2, // START = 2
+  4, // LAND = 3
+  1, // FWD = 4
+  1, // BWD = 5
+  1, // RIGHT = 6
+  1, // LEFT = 7
+  1, // UP = 8
+  1, // DOWN = 9
+  1, // TURN_R = 10
+  1, // TURN_L = 11
 }
 
 
@@ -65,6 +65,26 @@ bool fresh_connect = true;
 unsigned long launch = 0;
 unsigned long last_cmd = 0;
 
+int[] test_series = {
+  2,
+  1,
+  4,
+  10,
+  10,
+  10,
+  6,
+  7,
+  11,
+  11,
+  11,
+  9,
+  8,
+  3,
+  1,
+  1,
+  1
+}
+int test_series_length = 17;
 
 void setup()
 {
@@ -73,7 +93,8 @@ void setup()
   check_and_connect();
 }
 
-void loop() {
+void loop() 
+{
   WiFiClient client;
   print_wifi_status();
   // check if the client is connected and if not try to reconnect the client
@@ -87,19 +108,18 @@ void loop() {
   
   // if the connection is fresh - send init command
   if(fresh_connect) {
-    
-    // client.print();
-    // CDMS[0]
+    // sending init command for communication start - no time required as the command only gets send once
+    client.print(CMDS[0]);
   }
 
   // send series
-  send_command();
+  send_series(client);
+  // send_command(client, ...);
 
 
   
 
   // client.stop();
-  delay(5000);
 }
 
 // Check the current connection and connect to the drone
@@ -134,17 +154,47 @@ bool connect_to_drone() {
 }
 
 // send command and everything that is included with it
-void send_command(WiFiClient client, int cmd_number) {
+void send_command(WiFiClient client, String cmd) {
+  last_cmd = millis();
+  client.print(cmd);
+}
+
+// send command and everything that is included with it
+void send_command_with_number(WiFiClient client, int cmd_number) {
   last_cmd = millis();
   client.print(CDMS[cmd_number]);
 }
 
 // send a series of commands to the drone
-void send_series(char* series) {
-  //while i < len(flight_series)
-  int cmd_length = CMD_LENGTH[series[i]];
-  
+void send_series(client) {
+  int i = 0;
+  last_cmd = millis();
+  last_frame = millis();
+
+  while(i < test_series_length) {
+    String cmd = CMDS[i];
+    int cmd_length = CMD_LENGTH[series[i]];
+    long elapsed_time = millis() - last_cmd;
+
+    // current command is over - go to next command
+    if(elapsed_time > cmd_length*1000000) {
+      i++;
+      last_cmd = millis();
+      continue;
+    }
+    // send command 
+    else{
+      client.print(cmd);
+    }
+
+    // Handle sleeping in length of the polling rate
+    long since_last_frame = current - last_frame();
+    if (since_last_frame < POLLING_RATE)
+    {
+      delay(POLLING_RATE - since_last_frame);
+    }
+    last_frame = millis();
+
+  }
+
 }
-
-
-
