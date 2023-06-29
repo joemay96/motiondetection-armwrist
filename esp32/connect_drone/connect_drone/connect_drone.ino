@@ -36,6 +36,24 @@ const String[12] CDMS = {
   "01100011 01100011 00001010 00000000 00000000 00001000 00000000 11001100 10000000 10000000 01100101 00000101 00000000 01100000 00110011",
 }
 
+// define how long every command should take - only IDLE, START and LAND need other time measures
+// TODO: after the start and stop command their should come at least 1 bzw. 3 seconds idle signal before the connection is closed, so that the drone has enough time to stop.
+const int[12] CMD_LENGTH = {
+  0, // INIT
+  1, // IDLE
+  2, // START
+  4, // LAND
+  1, // FWD
+  1, // BWD
+  1, // RIGHT
+  1, // LEFT
+  1, // UP
+  1, // DOWN
+  1, // TURN_R
+  1, // TURN_L
+}
+
+
 // IPAddress host(192, 168, 0, 1);
 const char * host = "192.168.0.1";
 const uint16_t port = 40000;
@@ -44,6 +62,9 @@ const uint16_t port = 40000;
 const float POLLING_RATE = 1.0 / 15;
 
 bool fresh_connect = true;
+unsigned long launch = 0;
+unsigned long last_cmd = 0;
+
 
 void setup()
 {
@@ -66,10 +87,15 @@ void loop() {
   
   // if the connection is fresh - send init command
   if(fresh_connect) {
-    client.write();
+    
     // client.print();
     // CDMS[0]
   }
+
+  // send series
+  send_command();
+
+
   
 
   // client.stop();
@@ -102,7 +128,23 @@ bool connect_to_drone() {
     return false;
   }
   fresh_connect = true;
+  launch = millis();
+  last_cmd = millis();
   return true;
 }
+
+// send command and everything that is included with it
+void send_command(WiFiClient client, int cmd_number) {
+  last_cmd = millis();
+  client.print(CDMS[cmd_number]);
+}
+
+// send a series of commands to the drone
+void send_series(char* series) {
+  //while i < len(flight_series)
+  int cmd_length = CMD_LENGTH[series[i]];
+  
+}
+
 
 
