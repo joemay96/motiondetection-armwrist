@@ -8,7 +8,7 @@ https://github.com/arduino/arduino-ide/issues/803
 //Create a instance of class LSM6DS3
 LSM6DS3 IMU(I2C_MODE, 0x6A);  //I2C device address 0x6A
 float aX, aY, aZ, gX, gY, gZ;
-const float accelerationThreshold = 3.5;  // threshold of significant in G's
+const float accelerationThreshold = 2.5;  // threshold of significant in G's
 const int numSamples = 119;
 int samplesRead = numSamples;
 
@@ -31,7 +31,7 @@ void loop() {
     // read the acceleration data
     float aX = IMU.readFloatAccelX();
     float aY = IMU.readFloatAccelY();
-    float aZ = IMU.readFloatAccelZ() - 1.02;  //! Zum ausgleich
+    float aZ = IMU.readFloatAccelZ(); // Hier keine -1.02, da sonst die Aktivierung verzerrt wird
 
     // if (aX < 0) {
     //   aX = 0;
