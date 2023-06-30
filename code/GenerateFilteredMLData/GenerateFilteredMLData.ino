@@ -23,7 +23,7 @@ Gyroskop ist für Start der Bewegungswahrnehmung eingentlich egal. Grundsätzlic
 LSM6DS3 IMU(I2C_MODE, 0x6A);  //I2C device address 0x6A
 float aX, aY, aZ, gX, gY, gZ;
 // TODO: Vielleicht mehrere verschiedene thresholds für alle Achsen X, Y und Z
-const float accelerationThreshold = 1.5;  // threshold of significant in G's
+const float accelerationThreshold = 1.9;  // threshold of significant in G's
 
 const int numSamples = 119;
 int samplesRead = numSamples;
@@ -91,31 +91,27 @@ void loop() {
     float aY = SF1eFilterDo(aYFilter, IMU.readFloatAccelY());
     float aZ = SF1eFilterDo(aZFilter, IMU.readFloatAccelZ()); 
 
-    float gX = SF1eFilterDo(aXFilter, IMU.readFloatGyroX() + 0.7);
+    // float gX = SF1eFilterDo(aXFilter, IMU.readFloatGyroX());
     // float gY = SF1eFilterDo(aXFilter, IMU.readFloatGyroY() + 1.4);
     // float gZ = SF1eFilterDo(aXFilter, IMU.readFloatGyroZ());
-    float gY = IMU.readFloatGyroY() + 1.4;
-    float gZ = IMU.readFloatGyroZ();
 
-    Serial.print(aX/100.0);
+    // sum up the absolutes
+    float aSum = fabs(aX) + fabs(aY) + fabs(aZ);
+    // float aSum = fabs(aX + aY + aZ);
+    Serial.println(aSum);
+    Serial.print(aX);
     Serial.print("\t");
     Serial.print(aY);
     Serial.print("\t");
     Serial.print(aZ);
-    Serial.println("");
-
-    // sum up the absolutes
-    // float aSum = fabs(aX) + fabs(aY) + fabs(aZ);
-    float aSum = fabs(aX + aY + aZ);
+    Serial.println();
 
     // check if it's above the threshold
-    /*
     if (aSum >= accelerationThreshold) {
       // reset the sample read count
       samplesRead = 0;
       break;
     }
-    */
   }
   
   // check if the all the required samples have been read since
@@ -123,6 +119,8 @@ void loop() {
   while (samplesRead < numSamples) {
     samplesRead++;
 
+
+  /*
     // mache einen Timeout beim letzten Durchlauf
     if (samplesRead == numSamples) {
       // TODO: Überlegen wie ich hier das delay einbaue
@@ -130,27 +128,27 @@ void loop() {
       Serial.println("BREAK!");
       break;
     }
+  */
 
     // print the data in CSV format
-/*
-    Serial.print(SF1eFilterDo(aXFilter, IMU.readFloatAccelX()), 4);
+    Serial.print(SF1eFilterDo(aXFilter, IMU.readFloatAccelX()), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(aYFilter, IMU.readFloatAccelY()), 4);
+    Serial.print(SF1eFilterDo(aYFilter, IMU.readFloatAccelY()), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(aZFilter, IMU.readFloatAccelZ() - 1.02) , 4);
+    Serial.print(SF1eFilterDo(aZFilter, IMU.readFloatAccelZ()), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gXFilter, IMU.readFloatGyroX() + 0.7) , 4);
+    Serial.print(SF1eFilterDo(gXFilter, IMU.readFloatGyroX()), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gYFilter, IMU.readFloatGyroY() + 1.4) , 4);
+    Serial.print(SF1eFilterDo(gYFilter, IMU.readFloatGyroY()), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gZFilter, IMU.readFloatGyroZ()), 4);
+    Serial.print(SF1eFilterDo(gZFilter, IMU.readFloatGyroZ()), 3);
     Serial.println();
 
-*/
 
-    // if (samplesRead == numSamples) {
-    //   // add an empty line if it's the last sample
-    //   Serial.println();
-    // }
+    if (samplesRead == numSamples) {
+      // add an empty line if it's the last sample
+      Serial.println();
+      delay(500);
+    }
   }
 }
