@@ -40,7 +40,7 @@ TfLiteTensor *tflOutputTensor = nullptr;
 
 // TODO: vielleicht muss ich den Tensor ein wenig größer machen?!
 
-constexpr int tensorArenaSize = 8 * 1024;
+constexpr int tensorArenaSize = 8 * 2048;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
@@ -79,26 +79,8 @@ void initFilters()
   SF1eFilterInit(gZFilter);
 }
 
-void setup()
+void setupTFModel()
 {
-  Serial.begin(9600);
-  while (!Serial)
-    ;
-
-  if (IMU.begin() != 0)
-  {
-    Serial.println("Device error");
-  }
-  else
-  {
-    Serial.println("Device OK!");
-  }
-
-  Serial.println();
-
-  // Init the filters
-  initFilters();
-
   // get the TFL representation of the model byte array
   tflModel = tflite::GetModel(model);
   if (tflModel->version() != TFLITE_SCHEMA_VERSION)
@@ -117,6 +99,27 @@ void setup()
   // Get pointers for the model's input and output tensors
   tflInputTensor = tflInterpreter->input(0);
   tflOutputTensor = tflInterpreter->output(0);
+}
+
+void setup()
+{
+  Serial.begin(9600);
+  while (!Serial)
+    ;
+
+  if (IMU.begin() != 0)
+  {
+    Serial.println("Device error");
+  }
+  else
+  {
+    Serial.println("Device OK!");
+  }
+
+  Serial.println();
+
+  initFilters();
+  setupTFModel();
 }
 
 void loop()
