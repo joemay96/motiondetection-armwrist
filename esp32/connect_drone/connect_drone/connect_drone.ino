@@ -8,7 +8,7 @@
 const char* ssid = "Potensic P7_687735";
 const char* password = "";
 
-const String[12] CDMS = {
+const String CMDS[] = {
   // 01100011 01100011 00000001 00000000 00000000 00000000 00000000, cc, RIGHT 80+ | LEFT 80-, FWD 80+ | BACK 80-, UP 80+ | DOWN 80-, Turn Right 80+ | T LEFT 80-, ??, 33
   // INIT
   "01100011 01100011 00000001 00000000 00000000 00000000 00000000",
@@ -34,11 +34,11 @@ const String[12] CDMS = {
   "01100011 01100011 00001010 00000000 00000000 00001000 00000000 11001100 10000000 10000000 01101001 11111011 00000000 10010010 00110011",
   // TURN_L
   "01100011 01100011 00001010 00000000 00000000 00001000 00000000 11001100 10000000 10000000 01100101 00000101 00000000 01100000 00110011",
-}
+};
 
 // define how long every command should take - only IDLE, START and LAND need other time measures
 // TODO: after the start and stop command their should come at least 1 bzw. 3 seconds idle signal before the connection is closed, so that the drone has enough time to stop.
-const int[12] CMD_LENGTH = {
+const int CMD_LENGTH[] = {
   0, // INIT = 0
   1, // IDLE = 1
   2, // START = 2
@@ -51,10 +51,10 @@ const int[12] CMD_LENGTH = {
   1, // DOWN = 9
   1, // TURN_R = 10
   1, // TURN_L = 11
-}
+};
 
 // IPAddress host(192, 168, 0, 1);
-const char * host = "192.168.0.1";
+const char *host = "192.168.0.1";
 const uint16_t port = 40000;
 
 /* Config for sending */
@@ -64,7 +64,7 @@ bool fresh_connect = true;
 unsigned long launch = 0;
 unsigned long last_cmd = 0;
 
-int[] test_series = {
+int test_series[] = {
   2,
   1,
   4,
@@ -82,14 +82,21 @@ int[] test_series = {
   1,
   1,
   1
-}
+};
+
 int test_series_length = 17;
 
 void setup()
 {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
-  check_and_connect();
+  Serial.println("Connecting to Potensic drohne");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(WiFi.status());
+  }
+  Serial.print("Connected to Potensic drohne with IP: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() 
@@ -106,14 +113,14 @@ void loop()
 }
 
 // Check the current connection and connect to the drone
-void check_and_connect() {
-  Serial.print("Connecting to Potensic drohne...");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.print("Connected to Potensic drohne");
-}
+// void check_and_connect() {
+//   Serial.print("Connecting to Potensic drohne...");
+//   while (WiFi.status() != WL_CONNECTED) {
+//     delay(500);
+//     Serial.print(".");
+//   }
+//   Serial.print("Connected to Potensic drohne");
+// }
 
 // print wifi status
 void print_wifi_status() {
@@ -124,9 +131,10 @@ void print_wifi_status() {
 }
 
 // connect the esp to the drone
-bool connect_to_drone() {
+bool connect_to_drone(WiFiClient client) {
   client.connect(host, port);
   if (!client.connected()) {
+    Serial.println(WiFi.status());
     Serial.println("Connection to drone failed!");
     return false;
   }
@@ -146,18 +154,18 @@ void send_command(WiFiClient client, String cmd) {
 // send command and everything that is included with it
 void send_command_with_number(WiFiClient client, int cmd_number) {
   last_cmd = millis();
-  client.print(CDMS[cmd_number]);
+  client.print(CMDS[cmd_number]);
 }
 
 // send a series of commands to the drone
-void send_series(client) {
+void send_test_series(WiFiClient client) {
   int i = 0;
   last_cmd = millis();
-  last_frame = millis();
+  long last_frame = millis();
 
   while(i < test_series_length) {
     String cmd = CMDS[i];
-    int cmd_length = CMD_LENGTH[series[i]];
+    int cmd_length = CMD_LENGTH[test_series[i]];
     long elapsed_time = millis() - last_cmd;
 
     // current command is over - go to next command
@@ -172,7 +180,7 @@ void send_series(client) {
     }
 
     // Handle sleeping in length of the polling rate
-    long since_last_frame = current - last_frame();
+    long since_last_frame = millis() - last_frame;
     if (since_last_frame < POLLING_RATE)
     {
       delay(POLLING_RATE - since_last_frame);
@@ -185,16 +193,31 @@ void send_series(client) {
 // TODO: command parameter coming from the IMU and so on
 void drone()
 {
-  WiFiClient client;
-  
   // check if the client is connected and if not try to reconnect the client
-  if(!client.connected()) {
-    if(!connect_to_drone()) {
+  WiFiClient client;
+  client.connect(host, port);
+  // if(!client.connected()) {
+  //   int stat = client.connect(host, port);
+  //   Serial.println(stat);
+  //   if (!client.connected()) {
+  //     Serial.println(WiFi.status());
+  //     Serial.println("Connection to drone failed!");
+  //     delay(1000);
+  //     return;
+  //   }
+    fresh_connect = true;
+    launch = millis();
+    last_cmd = millis();
+  // }
+  // check if the client is connected and if not try to reconnect the client
+  /* if(!client.connected()) {
+    connect_to_drone(client);
+    if(!connect_to_drone(client)) {
       delay(500);
       return;
     }
     print_wifi_status();
-  }
+  } */
   // client is conntected to drone
   
   // if the connection is fresh - send init command
@@ -205,7 +228,7 @@ void drone()
 
   // TODO: sort this out for IMU messages
   // send series of commands to drone
-  send_series(client);
+  send_test_series(client);
 }
 
 

@@ -1,6 +1,8 @@
 #include <LSM6DS3.h>
 #include <Wire.h>
+#include <Arduino.h>
 
+// #define ARDUINO
 #include <TensorFlowLite.h>
 #include <tensorflow/lite/micro/all_ops_resolver.h>
 #include <tensorflow/lite/micro/micro_error_reporter.h>
@@ -20,7 +22,7 @@ int samplesRead = numSamples;
 LSM6DS3 IMU(I2C_MODE, 0x6A);  
 
 // global variables used for TensorFlow Lite (Micro)
-tflite::MicroErrorReporter tflErrorReporter;
+ tflite::MicroErrorReporter tflErrorReporter;
 
 // pull in all the TFLM ops, you can remove this line and
 // only pull in the TFLM ops you need, if would like to reduce
