@@ -1,24 +1,17 @@
-/*
- *  This sketch sends random data over UDP on a ESP32 device
- *
- */
-
 #include "main.h"
+WiFiUDP udp;
+
 // WiFi network name and password:
 // const char *networkName = "Potensic P7_Laptop";
-const char* networkName = "Potensic P7_687735";
+const char *networkName = "Potensic P7_687735";
 
-// IP address to send UDP data to:
-//  either use the ip address of the server or
-//  a network broadcast address
+// IP address to send UDP data to: either use the ip address of the server or a network broadcast address
 const char *udpAddress = "192.168.0.1";
 const int udpPort = 40000;
 
 // Are we currently connected?
 boolean connected = false;
-
-// The udp library class
-WiFiUDP udp;
+boolean init = false;
 
 void setup()
 {
@@ -31,11 +24,11 @@ void setup()
 
 void loop()
 {
-  bool init = false;
   // only send data when connected
   if (connected)
   {
-    if (!init) {
+    if (!init)
+    {
       sendCMD(CMD::INIT);
       init = true;
     }
