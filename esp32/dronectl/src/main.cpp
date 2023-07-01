@@ -32,6 +32,7 @@ void loop()
       sendCMD(CMD::INIT);
       init = true;
     }
+    // TODO: what command should be send
     sendCMD(CMD::START);
   }
   delay(POLLING_RATE);
