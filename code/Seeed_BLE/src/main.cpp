@@ -1,24 +1,21 @@
 /* Code for Seeed BLE Server which sends information to the clients.
  * Therefore every device which supports BLE can be connected to the Seeed microcontroller and read out the IMU data that gets boardcasted.
  */
-
+#define ARDUINO_SEEED_XIAO_NRF52840_SENSE
 #include <Arduino.h>
 #include <ArduinoBLE.h>
+#include "cmds.h"
 
 // Weiß nicht ob die UUID hier random ist oder nicht
-BLEService imuService("19B10000-E8F2-537E-4F6C-D104768A1214"); // Bluetooth® Low Energy LED Service
+BLEService imuService(AW_BLE_SERVICE_ID); // Bluetooth® Low Energy LED Service
 // Bluetooth® Low Energy LED Switch Characteristic - custom 128-bit UUID, read and writable by central
 // 20 indicates the maximum length of data you can send.
-BLEStringCharacteristic imuCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 20);
-
-#define bleServerName "IMU_Handwrist"
+BLEStringCharacteristic imuCharacteristic(AW_BLE_SERVICE_CHARACTERISTIC, BLERead | BLENotify, 20);
 
 int last_val = 0;
 
-void setup()
+void initBLE()
 {
-  Serial.begin(9600);
-
   // begin initialization
   if (!BLE.begin())
   {
@@ -28,9 +25,8 @@ void setup()
   }
 
   // set advertised local name and service UUID:
-  BLE.setLocalName("IMU_Handwrist");
+  BLE.setLocalName(bleServerName);
   BLE.setAdvertisedService(imuService);
-
   // add the characteristic to the service
   imuService.addCharacteristic(imuCharacteristic);
   // add service
@@ -42,30 +38,41 @@ void setup()
   Serial.println("Seeed BLE ready");
 }
 
+void setup()
+{
+  Serial.begin(9600);
+  initBLE();
+}
+
 void loop()
 {
   // listen for Bluetooth® Low Energy peripherals to connect:
-  BLEDevice central = BLE.central();
+  BLEDevice client = BLE.central();
+  Serial.println("Connecting...");
+  delay(500);
 
   // if a device is connected:
-  if (central)
+  if (client)
   {
     Serial.print("Connected to device: ");
     // print the device's MAC address:
-    Serial.println(central.address());
+    Serial.println(client.address());
 
     // while the device is connected send IMU data
-    while (central.connected())
+    while (client.connected())
     {
-      // TODO: get IMU data
+      //! Here the Motion Recognition later takes place and the enum value will be send to the other device
+      //! Check if a new value was recognized
+      // new_val != last_val
+      // instead of if(true)...
       if (true)
       { // check for new data
-        imuCharacteristic.value("Hello world!");
+        imuCharacteristic.setValue(CMD[5]);
       }
     }
 
     // when the central disconnects, print it out:
-    Serial.print(F("Device disconnected: "));
-    Serial.println(central.address());
+    Serial.print("Device disconnected: ");
+    Serial.println(client.address());
   }
 }

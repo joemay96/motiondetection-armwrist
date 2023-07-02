@@ -154,7 +154,7 @@ void loop()
     {
       Serial.println("Connected to IMU Wristband.");
       // Activate the Notify property of each Characteristic
-      imuCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902) sssss)->writeValue((uint8_t *)notificationOn, 2, true);
+      imuCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t *)notificationOn, 2, true);
       connected = true;
     }
     else
