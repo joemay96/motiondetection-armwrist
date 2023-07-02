@@ -1,23 +1,5 @@
 /* This script includes all the Code that is used for the BLE connection from the Seeed microcontroller to the ESP32 from the ESP32 side. */
 
-/*
-// https://www.uuidgenerator.net/
-#define SERVICE_UUID "91bad492-b950-4226-aa2b-4ede9fa42f59"
-
-// Temperature Characteristic and Descriptor
-#ifdef temperatureCelsius
-  BLECharacteristic bmeTemperatureCelsiusCharacteristics("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor bmeTemperatureCelsiusDescriptor(BLEUUID((uint16_t)0x2902));
-#else
-  BLECharacteristic bmeTemperatureFahrenheitCharacteristics("f78ebbff-c8b7-4107-93de-889a6a06d408", BLECharacteristic::PROPERTY_NOTIFY);
-  BLEDescriptor bmeTemperatureFahrenheitDescriptor(BLEUUID((uint16_t)0x2901));
-#endif
-
-// Humidity Characteristic and Descriptor
-BLECharacteristic bmeHumidityCharacteristics("ca73b3ba-39f6-4ab3-91ae-186dc9577d99", BLECharacteristic::PROPERTY_NOTIFY);
-BLEDescriptor bmeHumidityDescriptor(BLEUUID((uint16_t)0x2903));
-*/
-
 #include "BLEDevice.h"
 #include <Wire.h>
 #include <Arduino.h>
@@ -43,6 +25,9 @@ static BLEAddress *pServerAddress;
 
 // Characteristicd that we want to read
 static BLERemoteCharacteristic *imuCharacteristic;
+// TODO: ich weiß nicht ob ich das brauche um die Verbindung aufzubauen...
+// BLECharacteristic bmeTemperatureCelsiusCharacteristics("cba1d466-344c-4be3-ab3f-189f80dd7518", BLECharacteristic::PROPERTY_NOTIFY);
+//   BLEDescriptor bmeTemperatureCelsiusDescriptor(BLEUUID((uint16_t)0x2902));
 
 // Activate notify
 const uint8_t notificationOn[] = {0x1, 0x0};
@@ -121,11 +106,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
   }
 };
 
-void printImuValues()
-{
-  Serial.print("");
-}
-
 void setup()
 {
   // Start serial communication
@@ -145,6 +125,8 @@ void setup()
 void loop()
 {
   // If the flag "doConnect" is true then we have scanned for and found the desired BLE Server with which we wish to connect. Now we connect to it. Once we are connected we set the connected flag to be true.
+  Serial.println("Scanning for BLE Server...");
+  Serial.println(doConnect);
   if (doConnect == true)
   {
     // pServerAdress gets populated in setup()

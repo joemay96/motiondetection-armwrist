@@ -46,10 +46,9 @@ void setup()
 
 void loop()
 {
+  Serial.println("BLE Ready");
   // listen for Bluetooth® Low Energy peripherals to connect:
   BLEDevice client = BLE.central();
-  Serial.println("Connecting...");
-  delay(500);
 
   // if a device is connected:
   if (client)
