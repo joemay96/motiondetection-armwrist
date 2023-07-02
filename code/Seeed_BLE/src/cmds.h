@@ -1,5 +1,5 @@
-#ifndef POTENSIC_H
-#define POTENSIC_H
+#ifndef AM_BLE_H
+#define AM_BLE_H
 
 #define bleServerName "AW_BLE_SERVER"
 
