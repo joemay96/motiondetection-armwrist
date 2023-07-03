@@ -25,6 +25,7 @@ void initBLE()
   }
 
   // set advertised local name and service UUID:
+  BLE.setDeviceName(bleServerName);
   BLE.setLocalName(bleServerName);
   BLE.setAdvertisedService(imuService);
   // add the characteristic to the service
@@ -47,13 +48,13 @@ void initBLE()
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   initBLE();
 }
 
 void loop()
 {
-  Serial.println("BLE Ready");
+  // Serial.println("BLE Ready");
   // listen for Bluetooth® Low Energy peripherals to connect:
   BLEDevice client = BLE.central();
 

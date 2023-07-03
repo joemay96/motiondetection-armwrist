@@ -1,18 +1,18 @@
 /* This script includes all the Code that is used for the BLE connection from the Seeed microcontroller to the ESP32 from the ESP32 side. */
 
+#include <Arduino.h>
 #include "BLEDevice.h"
 #include <Wire.h>
-#include <Arduino.h>
 #include "BLE.h"
 
 // BLE Server name (the other ESP32 name running the server sketch)
-#define imuServerName bleServerName
+// #define imuServerName bleServerName
 
 /* UUID's of the service, characteristic that we want to read*/
 // BLE Service
-static BLEUUID imuServiceUUID(AW_BLE_SERVICE_ID);
+static BLEUUID imuServiceUUID(BLE_SERVICE_ID);
 
-static BLEUUID imuCharacteristicUUID(AW_BLE_SERVICE_CHARACTERISTIC);
+static BLEUUID imuCharacteristicUUID(BLE_SERVICE_CHARACTERISTIC);
 
 /***********************************************************************/
 
@@ -44,11 +44,7 @@ boolean newImu = false;
 // When the BLE Server sends a new data react with the notify property
 static void imuNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-  // TODO: get the IUM value and react to it by sending the message to the drone - or in this project simply putting it onto the screen
-  //  imuData = pData;
-  imuData = (int)pData;
-  // newImu = true;
-  // Serial.print(pData);
+  imuData = (int)*pData;
   newData = true;
 }
 
@@ -95,8 +91,9 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
   void onResult(BLEAdvertisedDevice advertisedDevice)
   {
-    //! hier .toString() hinzugefügt
-    if (advertisedDevice.getName() == imuServiceUUID.toString())
+    Serial.printf("%s \n", advertisedDevice.toString().c_str());
+    Serial.printf("%s \n", advertisedDevice.getServiceUUID().toString());
+    if (advertisedDevice.getServiceUUID().toString() == imuServiceUUID.toString())
     {                                                                 // Check if the name of the advertiser matches
       advertisedDevice.getScan()->stop();                             // Scan can be stopped, we found what we are looking for
       pServerAddress = new BLEAddress(advertisedDevice.getAddress()); // Address of advertiser is the one we need
@@ -109,32 +106,34 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 void setup()
 {
   // Start serial communication
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Start ESP32 BLE");
 
   // Init BLE device
-  BLEDevice::init("");
+  BLEDevice::init("ESP Drone Connector");
 
   // Retrieve a Scanner and set the callback we want to use to be informed when we have detected a new device. Specify that we want active scanning and start the scan to run for 30 seconds.
   BLEScan *pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true);
-  pBLEScan->start(30);
+  pBLEScan->start(59);
+  //* falls das obere nicht klappt
+  pBLEScan->setInterval(100);
+  pBLEScan->setWindow(99);
+  Serial.println("Setup finished");
 }
 
 void loop()
 {
   // If the flag "doConnect" is true then we have scanned for and found the desired BLE Server with which we wish to connect. Now we connect to it. Once we are connected we set the connected flag to be true.
-  Serial.println("Scanning for BLE Server...");
-  Serial.println(doConnect);
-  if (doConnect == true)
+  if (doConnect)
   {
     // pServerAdress gets populated in setup()
     if (connectToServer(*pServerAddress))
     {
-      Serial.println("Connected to AM");
+      Serial.println("Connected to IMU Wristband");
       // Activate the Notify property of the Characteristic
-      imuCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t *)notificationOn, 2, true);
+      // imuCharacteristic->getDescriptor(BLEUUID((uint16_t)0x2902))->writeValue((uint8_t *)notificationOn, 2, true);
       connected = true;
     }
     else
@@ -144,16 +143,11 @@ void loop()
     }
     doConnect = false;
   }
-  else
-  {
-    // TODO: connect to the AM again?!
-  }
-  // a new CMD got received
+  // we are connected and a new CMD got received
   if (newData)
   {
     newData = false;
     // TODO: send the data as a CMD to the quadrocopter
     Serial.println(imuData);
   }
-  delay(1000); // Delay a second between loops.
 }
