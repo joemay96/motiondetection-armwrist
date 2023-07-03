@@ -10,7 +10,7 @@
 BLEService imuService(AW_BLE_SERVICE_ID); // Bluetooth® Low Energy LED Service
 // Bluetooth® Low Energy LED Switch Characteristic - custom 128-bit UUID, read and writable by central
 // 20 indicates the maximum length of data you can send.
-BLEStringCharacteristic imuCharacteristic(AW_BLE_SERVICE_CHARACTERISTIC, BLERead | BLENotify, 20);
+BLEIntCharacteristic imuCharacteristic(AW_BLE_SERVICE_CHARACTERISTIC, BLERead | BLENotify);
 
 int last_val = 0;
 
@@ -29,13 +29,20 @@ void initBLE()
   BLE.setAdvertisedService(imuService);
   // add the characteristic to the service
   imuService.addCharacteristic(imuCharacteristic);
+
+  //* sending an initial value?
+  // imuCharacteristic.writeValue(0);
+
   // add service
   BLE.addService(imuService);
 
   // start advertising
   BLE.advertise();
 
-  Serial.println("Seeed BLE ready");
+  // print address
+  Serial.print("Address: ");
+  Serial.println(BLE.address());
+  Serial.println("XIAO nRF52840 Peripheral");
 }
 
 void setup()
@@ -60,6 +67,7 @@ void loop()
     // while the device is connected send IMU data
     while (client.connected())
     {
+      // TODO: when connecting all scripts - here the motion recognition starts
       //! Here the Motion Recognition later takes place and the enum value will be send to the other device
       //! Check if a new value was recognized
       // new_val != last_val
@@ -67,6 +75,7 @@ void loop()
       if (true)
       { // check for new data
         imuCharacteristic.setValue(CMD[5]);
+        delay(1000);
       }
     }
 

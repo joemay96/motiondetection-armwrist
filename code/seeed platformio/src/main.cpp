@@ -15,7 +15,7 @@
 #include "model.h"
 
 float aX, aY, aZ, gX, gY, gZ;
-const float accelerationThreshold = 1.9; // threshold of significant in G's
+const float accelerationThreshold = 1.85; // threshold of significant in G's
 const int numSamples = 119;
 
 int samplesRead = numSamples;
@@ -35,12 +35,12 @@ tflite::MicroInterpreter *tflInterpreter = nullptr;
 TfLiteTensor *tflInputTensor = nullptr;
 TfLiteTensor *tflOutputTensor = nullptr;
 
-// Create a static memory buffer for TFLM, the size may need to
+// Create a static memory buffer for TFLM, the size may need tou
 // be adjusted based on the model you are using
 
 // TODO: vielleicht muss ich den Tensor ein wenig größer machen?!
 
-constexpr int tensorArenaSize = 8 * 1024;
+constexpr int tensorArenaSize = 24 * 1024;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
@@ -119,7 +119,24 @@ void setup()
   Serial.println();
 
   initFilters();
-  setupTFModel();
+  // setupTFModel();
+  tflModel = tflite::GetModel(model);
+  if (tflModel->version() != TFLITE_SCHEMA_VERSION)
+  {
+    Serial.println("Model schema mismatch!");
+    while (1)
+      ;
+  }
+
+  // Create an interpreter to run the model
+  tflInterpreter = new tflite::MicroInterpreter(tflModel, tflOpsResolver, tensorArena, tensorArenaSize, &tflErrorReporter);
+
+  // Allocate memory for the model's input and output tensors
+  tflInterpreter->AllocateTensors();
+
+  // Get pointers for the model's input and output tensors
+  tflInputTensor = tflInterpreter->input(0);
+  tflOutputTensor = tflInterpreter->output(0);
 }
 
 void loop()
