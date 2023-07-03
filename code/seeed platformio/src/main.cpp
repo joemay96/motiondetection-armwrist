@@ -40,23 +40,23 @@ TfLiteTensor *tflOutputTensor = nullptr;
 
 // TODO: vielleicht muss ich den Tensor ein wenig größer machen?!
 
-constexpr int tensorArenaSize = 8 * 2048;
+constexpr int tensorArenaSize = 8 * 1024;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
 const char *GESTURES[] = {
-    "fwd",
-    "back",
+    "start",
+    "land",
     "left",
     "right",
     "top",
     "down",
-    "left_turn",
-    "right_turn",
-    "start",
-    "land",
-    "doubleTap",
-    "flex",
+    // "fwd",
+    // "back",
+    // "left_turn",
+    // "right_turn",
+    // "doubleTap",
+    // "flex",
 };
 
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
@@ -160,6 +160,23 @@ void loop()
     gY = SF1eFilterDo(gYFilter, IMU.readFloatGyroY());
     gZ = SF1eFilterDo(gZFilter, IMU.readFloatGyroZ());
 
+    // Serial.print(samplesRead);
+    // Serial.print(" ");
+    // Serial.print(numSamples);
+    // Serial.print(" ");
+    // Serial.print(aX);
+    // Serial.print(" ;");
+    // Serial.print(aY);
+    // Serial.print(" ;");
+    // Serial.print(aZ);
+    // Serial.print(" ;");
+    // Serial.print(gX);
+    // Serial.print(" ;");
+    // Serial.print(gY);
+    // Serial.print(" ;");
+    // Serial.print(gZ);
+    // Serial.println(" ;");
+
     // normalize the IMU data between 0 to 1 and store in the model's
     // input tensor
     tflInputTensor->data.f[samplesRead * 6 + 0] = (aX + 4.0) / 8.0;
@@ -173,18 +190,22 @@ void loop()
 
     if (samplesRead == numSamples)
     {
+      Serial.println("Gets here...");
       // Run inferencing
       TfLiteStatus invokeStatus = tflInterpreter->Invoke();
-      if (invokeStatus != kTfLiteOk)
-      {
-        Serial.println("Invoke failed!");
-        while (1)
-          ;
-        return;
-      }
+      Serial.println(invokeStatus);
+      Serial.println("Lol?!?");
+      // if (invokeStatus != kTfLiteOk)
+      // {
+      //   Serial.println("Invoke failed!");
+      //   while (1)
+      //     ;
+      //   return;
+      // }
+      Serial.println("And here");
 
       // Loop through the output tensor values from the model
-      for (int i = 0; i < NUM_GESTURES; i++)
+      for (unsigned int i = 0; i < NUM_GESTURES; i++)
       {
         Serial.print(GESTURES[i]);
         Serial.print(": ");

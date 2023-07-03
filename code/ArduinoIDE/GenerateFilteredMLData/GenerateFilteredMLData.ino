@@ -23,7 +23,7 @@ Gyroskop ist für Start der Bewegungswahrnehmung eingentlich egal. Grundsätzlic
 LSM6DS3 IMU(I2C_MODE, 0x6A);  //I2C device address 0x6A
 float aX, aY, aZ, gX, gY, gZ;
 // TODO: Vielleicht mehrere verschiedene thresholds für alle Achsen X, Y und Z
-const float accelerationThreshold = 1.9;  // threshold of significant in G's
+const float accelerationThreshold = 1.85;  // threshold of significant in G's
 
 const int numSamples = 119;
 int samplesRead = numSamples;
