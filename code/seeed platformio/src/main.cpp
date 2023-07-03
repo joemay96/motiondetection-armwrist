@@ -179,12 +179,12 @@ void loop()
 
     // normalize the IMU data between 0 to 1 and store in the model's
     // input tensor
-    tflInputTensor->data.f[samplesRead * 6 + 0] = (aX + 4.0) / 8.0;
-    tflInputTensor->data.f[samplesRead * 6 + 1] = (aY + 4.0) / 8.0;
-    tflInputTensor->data.f[samplesRead * 6 + 2] = (aZ + 4.0) / 8.0;
-    tflInputTensor->data.f[samplesRead * 6 + 3] = (gX + 2000.0) / 4000.0;
-    tflInputTensor->data.f[samplesRead * 6 + 4] = (gY + 2000.0) / 4000.0;
-    tflInputTensor->data.f[samplesRead * 6 + 5] = (gZ + 2000.0) / 4000.0;
+    tflInputTensor->data.f[samplesRead * 6 + 0] = (aX + 2.0) / 4.0;
+    tflInputTensor->data.f[samplesRead * 6 + 1] = (aY + 2.0) / 4.0;
+    tflInputTensor->data.f[samplesRead * 6 + 2] = (aZ + 2.0) / 4.0;
+    tflInputTensor->data.f[samplesRead * 6 + 3] = (gX + 1000.0) / 2000.0;
+    tflInputTensor->data.f[samplesRead * 6 + 4] = (gY + 1000.0) / 2000.0;
+    tflInputTensor->data.f[samplesRead * 6 + 5] = (gZ + 1000.0) / 2000.0;
 
     samplesRead++;
 
@@ -192,17 +192,16 @@ void loop()
     {
       Serial.println("Gets here...");
       // Run inferencing
+      //! Somehow this doesn't give me anything back
       TfLiteStatus invokeStatus = tflInterpreter->Invoke();
       Serial.println(invokeStatus);
-      Serial.println("Lol?!?");
-      // if (invokeStatus != kTfLiteOk)
-      // {
-      //   Serial.println("Invoke failed!");
-      //   while (1)
-      //     ;
-      //   return;
-      // }
-      Serial.println("And here");
+      if (invokeStatus != kTfLiteOk)
+      {
+        Serial.println("Invoke failed!");
+        while (1)
+          ;
+        return;
+      }
 
       // Loop through the output tensor values from the model
       for (unsigned int i = 0; i < NUM_GESTURES; i++)
