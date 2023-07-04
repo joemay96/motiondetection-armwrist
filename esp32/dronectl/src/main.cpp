@@ -11,7 +11,7 @@ const int udpPort = 40000;
 
 // Are we currently connected?
 boolean connected = false;
-boolean init = false;
+boolean initWifi = false;
 
 void setup()
 {
@@ -27,10 +27,10 @@ void loop()
   // only send data when connected
   if (connected)
   {
-    if (!init)
+    if (!initWifi)
     {
       sendCMD(CMD::INIT);
-      init = true;
+      initWifi = true;
     }
     // TODO: what command should be send
     sendCMD(CMD::START);

@@ -238,7 +238,7 @@ void loop()
         sendCMD(CMD::INIT);
         droneInit = true;
       }
-      // TODO: send the command that is in imuData
+      // TODO: send the command that is send through imuData
       sendCMD(CMD::START);
     }
     delay(POLLING_RATE);

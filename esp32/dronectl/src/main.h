@@ -6,7 +6,7 @@
 #include <WiFiUdp.h>
 #include "potensic.h"
 
-void connectToWiFi(const char * ssid);
+void connectToWiFi(const char *ssid);
 void WiFiEvent(WiFiEvent_t event);
 void sendCMD(CMD cmd);
 
