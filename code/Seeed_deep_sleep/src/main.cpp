@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include <LSM6DS3.h>
 #include "Wire.h"
-#include "SdFat.h"
-#include <Adafruit_FlashTransport.h>
+// #include "SdFat.h"
+// #include <Adafruit_FlashTransport.h>
 
 LSM6DS3 imu(I2C_MODE, 0x6A);		 // IMU
 #define int1Pin PIN_LSM6DS3TR_C_INT1 // IMU for pin 1
