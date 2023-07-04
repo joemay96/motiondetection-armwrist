@@ -80,6 +80,21 @@ void goToPowerOff()
   // sd_power_system_off();
 }
 
+void seeed_deep_sleep()
+{
+  if (interruptCount > prevInterruptCount)
+  {
+    Serial.println("Interrupt received!");
+  }
+  prevInterruptCount = interruptCount;
+
+  if (interruptCount >= 2)
+  {
+    // Trigger System OFF after 5 interrupts
+    goToPowerOff();
+  }
+}
+
 /*
   Methods for BLE
 */
@@ -153,20 +168,48 @@ void setup()
 void loop()
 {
   setLED(false);
-  Serial.print("Interrupt Counter: ");
-  Serial.println(interruptCount);
+  // benötige ich im final nicht
+  // Serial.print("Interrupt Counter: ");
+  // Serial.println(interruptCount);
 
-  if (interruptCount > prevInterruptCount)
+  /*
+    Deep Sleep
+  */
+  seeed_deep_sleep();
+
+  /*
+    BLE Code
+  */
+
+  BLEDevice client = BLE.central();
+
+  // if a device is connected:
+  if (client)
   {
-    Serial.println("Interrupt received!");
-  }
-  prevInterruptCount = interruptCount;
+    Serial.print("Connected to device: ");
+    // print the device's MAC address:
+    Serial.println(client.address());
 
-  if (interruptCount >= 2)
-  {
-    // Trigger System OFF after 5 interrupts
-    goToPowerOff();
-  }
+    // while the device is connected send IMU data
+    while (client.connected())
+    {
+      // TODO: when connecting all scripts - here the motion recognition starts
+      //! Here the Motion Recognition later takes place and the enum value will be send to the other device
+      //! Check if a new value was recognized
+      // new_val != last_val
+      // instead of if(true)...
+      if (true)
+      { // check for new data
+        imuCharacteristic.setValue(CMD[5]);
+        delay(1000);
+      }
+      // auch wenn mit einem client connected ist soll er in den deep sleep fallen können
+      seeed_deep_sleep();
+    }
 
+    // when the central disconnects, print it out:
+    Serial.print("Device disconnected: ");
+    Serial.println(client.address());
+  }
   delay(500);
 }
