@@ -4,6 +4,10 @@
 		"*.ejs": "html",
 		"*.html": "html",
 		"*.rmd": "markdown",
-		"random": "cpp"
+		"random": "cpp",
+		"mstd_functional": "cpp",
+		"mstd_mutex": "cpp",
+		"mstd_tuple": "cpp",
+		"mstd_type_traits": "cpp"
 	}
 }

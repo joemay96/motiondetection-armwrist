@@ -1,22 +1,7 @@
-#define ARDUINO_SEEED_XIAO_NRF52840_SENSE
-#include <LSM6DS3.h>
-#include <Wire.h>
-#include <Arduino.h>
+#include "main.h"
 
-// #define ARDUINO
-#include <TensorFlowLite.h>
-#include <tensorflow/lite/micro/all_ops_resolver.h>
-#include <tensorflow/lite/micro/micro_error_reporter.h>
-#include <tensorflow/lite/micro/micro_interpreter.h>
-#include <tensorflow/lite/schema/schema_generated.h>
-// #include <tensorflow/lite/version.h>
-
-#include "SF1eFilter.h"
-#include "model.h"
-
-float aX, aY, aZ, gX, gY, gZ;
-const float accelerationThreshold = 1.85; // threshold of significant in G's
-const int numSamples = 119;
+const float accelerationThreshold = 2.0; // threshold of significant in G's
+const int numSamples = 199;
 
 int samplesRead = numSamples;
 
@@ -40,7 +25,7 @@ TfLiteTensor *tflOutputTensor = nullptr;
 
 // TODO: vielleicht muss ich den Tensor ein wenig größer machen?!
 
-constexpr int tensorArenaSize = 24 * 1024;
+constexpr int tensorArenaSize = 48 * 1024;
 byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
@@ -51,6 +36,7 @@ const char *GESTURES[] = {
     "right",
     "top",
     "down",
+
     // "fwd",
     // "back",
     // "left_turn",
@@ -82,6 +68,7 @@ void initFilters()
 void setupTFModel()
 {
   // get the TFL representation of the model byte array
+  // tflModel = tflite::GetModel(model);
   tflModel = tflite::GetModel(model);
   if (tflModel->version() != TFLITE_SCHEMA_VERSION)
   {
@@ -116,27 +103,9 @@ void setup()
     Serial.println("Device OK!");
   }
 
-  Serial.println();
-
   initFilters();
-  // setupTFModel();
-  tflModel = tflite::GetModel(model);
-  if (tflModel->version() != TFLITE_SCHEMA_VERSION)
-  {
-    Serial.println("Model schema mismatch!");
-    while (1)
-      ;
-  }
 
-  // Create an interpreter to run the model
-  tflInterpreter = new tflite::MicroInterpreter(tflModel, tflOpsResolver, tensorArena, tensorArenaSize, &tflErrorReporter);
-
-  // Allocate memory for the model's input and output tensors
-  tflInterpreter->AllocateTensors();
-
-  // Get pointers for the model's input and output tensors
-  tflInputTensor = tflInterpreter->input(0);
-  tflOutputTensor = tflInterpreter->output(0);
+  setupTFModel();
 }
 
 void loop()
@@ -147,9 +116,9 @@ void loop()
   while (samplesRead == numSamples)
   {
     // read the acceleration data
-    float aX = SF1eFilterDo(aXFilter, IMU.readFloatAccelX());
-    float aY = SF1eFilterDo(aYFilter, IMU.readFloatAccelY());
-    float aZ = SF1eFilterDo(aZFilter, IMU.readFloatAccelZ());
+    aX = SF1eFilterDo(aXFilter, IMU.readFloatAccelX());
+    aY = SF1eFilterDo(aYFilter, IMU.readFloatAccelY());
+    aZ = SF1eFilterDo(aZFilter, IMU.readFloatAccelZ());
 
     // sum up the absolutes
     float aSum = fabs(aX) + fabs(aY) + fabs(aZ);
@@ -209,14 +178,14 @@ void loop()
     {
       Serial.println("Gets here...");
       // Run inferencing
-      //! Somehow this doesn't give me anything back
+      //! Somehow this doesn't give me anything back - commenting out micro_graph.cpp
       TfLiteStatus invokeStatus = tflInterpreter->Invoke();
+      Serial.println("Not here...");
       Serial.println(invokeStatus);
       if (invokeStatus != kTfLiteOk)
       {
         Serial.println("Invoke failed!");
-        while (1)
-          ;
+        // while (1);
         return;
       }
 

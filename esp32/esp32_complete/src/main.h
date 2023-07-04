@@ -9,7 +9,7 @@
 #include "BLEDevice.h"
 #include "BLE.h"
 
-// #include <Wire.h>
+#include <Wire.h>
 #include "potensic.h"
 
 void connectToWiFi(const char *ssid);
