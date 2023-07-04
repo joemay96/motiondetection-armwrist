@@ -4,11 +4,14 @@
 */
 
 #include <Arduino.h>
+#include "main.h"
 #include "BLEDevice.h"
 #include <Wire.h>
 #include "BLE.h"
 
-// BLE Server name (the other ESP32 name running the server sketch)
+/*
+  BLE Setup
+*/
 
 /* UUID's of the service, characteristic that we want to read*/
 static BLEUUID imuServiceUUID(BLE_SERVICE_ID);
@@ -16,7 +19,8 @@ static BLEUUID imuCharacteristicUUID(BLE_SERVICE_CHARACTERISTIC);
 
 // Flags stating if should begin connecting and if the connection is up
 static boolean doConnect = false;
-static boolean connected = false;
+// TODO: kann vielleicht raus?
+static boolean bleConnected = false;
 
 // Address of the peripheral device. Address will be found during scanning...
 static BLEAddress *pServerAddress;
@@ -31,6 +35,27 @@ const uint8_t notificationOff[] = {0x0, 0x0};
 // Variables to store imu values
 int imuData;
 boolean newData = false;
+
+/*
+  WiFi Setup
+*/
+
+WiFiUDP udp;
+
+// WiFi network name and password:
+const char *networkName = "Potensic P7_687735";
+
+// IP address to send UDP data to: either use the ip address of the server or a network broadcast address
+const char *udpAddress = "192.168.0.1";
+const int udpPort = 40000;
+
+// WiFi currently connected?
+boolean wifiConnected = false;
+boolean droneInit = false;
+
+/*
+  BLE Methods
+*/
 
 // This is an important function: When the BLE Server sends a new data react with the notify property
 static void imuNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
@@ -60,10 +85,6 @@ bool connectToServer(BLEAddress pAddress)
   // Obtain a reference to the characteristics in the service of the remote BLE server.
   imuCharacteristic = pRemoteService->getCharacteristic(imuCharacteristicUUID);
 
-  //! not sure if this works
-  // if(imuCharacteristicUUID.toString() == "<NULL>")
-  // könnte funktionieren, falls das unten der Fehler ist
-  // if (imuCharacteristicUUID == nullptr)
   if (imuCharacteristicUUID.toString() == "<NULL>")
   {
     Serial.print("Failed to find characteristic UUID");
@@ -110,6 +131,63 @@ void startBLEConnection()
   Serial.println("BLE Setup finished");
 }
 
+/*
+  WiFi Methods
+*/
+
+// wifi event handler
+void WiFiEvent(WiFiEvent_t event)
+{
+  switch (event)
+  {
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+    // When connected set
+    Serial.print("WiFi connected! IP address: ");
+    Serial.println(WiFi.localIP());
+    // initializes the UDP state
+    // This initializes the transfer buffer
+    udp.begin(WiFi.localIP(), udpPort);
+    wifiConnected = true;
+    break;
+  case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+    Serial.println("WiFi lost connection");
+    wifiConnected = false;
+    break;
+  default:
+    break;
+  }
+}
+
+void connectToWiFi(const char *ssid)
+{
+  Serial.println("Connecting to WiFi network: " + String(ssid));
+
+  // delete old config
+  WiFi.disconnect(true);
+  // register event handler
+  WiFi.onEvent(WiFiEvent);
+
+  // Initiate connection
+  WiFi.begin(ssid);
+
+  Serial.println("Waiting for WIFI connection...");
+}
+
+void sendCMD(CMD cmd)
+{
+  // Send a packet
+  udp.beginPacket(udpAddress, udpPort);
+  char *data = (char *)CMD_LIST[cmd].data();
+  int len = CMD_LIST[cmd].size();
+  for (int i = 0; i < len; i++)
+  {
+    printf("%02x", data[i]);
+    udp.print(data[i]);
+  }
+  printf("\n");
+  udp.endPacket();
+}
+
 void setup()
 {
   // Start serial communication
@@ -118,6 +196,9 @@ void setup()
 
   // Starting the whole BLE Connection process
   startBLEConnection();
+
+  Serial.println("Start WiFi connection to drone");
+  connectToWiFi(networkName);
 }
 
 void loop()
@@ -133,7 +214,7 @@ void loop()
     if (connectToServer(*pServerAddress))
     {
       Serial.println("Connected to IMU Wristband");
-      connected = true;
+      bleConnected = true;
     }
     else
     {
@@ -148,5 +229,18 @@ void loop()
     newData = false;
     // TODO: send the data as a CMD to the quadrocopter
     Serial.println(imuData);
+    // only send data to the drone when connected
+    if (wifiConnected)
+    {
+      if (!droneInit)
+      {
+        // send init command to the drone
+        sendCMD(CMD::INIT);
+        droneInit = true;
+      }
+      // TODO: send the command that is in imuData
+      sendCMD(CMD::START);
+    }
+    delay(POLLING_RATE);
   }
 }
