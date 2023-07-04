@@ -67,7 +67,7 @@ bool connectToServer(BLEAddress pAddress)
 
   // Connect to the remove BLE Server.
   pClient->connect(pAddress);
-  Serial.println("Connected to Seeed");
+  Serial.println(F("Connected to Seeed"));
 
   // Obtain a reference to the service we are after in the remote BLE server.
   BLERemoteService *pRemoteService = pClient->getService(imuServiceUUID);
@@ -83,7 +83,7 @@ bool connectToServer(BLEAddress pAddress)
 
   if (imuCharacteristicUUID.toString() == "<NULL>")
   {
-    Serial.print("Failed to find characteristic UUID");
+    // Serial.print("Failed to find characteristic UUID");
     return false;
   }
 
