@@ -5,7 +5,7 @@
 
 #define ARDUINO_SEEED_XIAO_NRF52840_SENSE
 #include "main.h"
-#include "SdFat.h"
+// #include "SdFat.h"
 // #include <Adafruit_FlashTransport.h>
 #include "cmds.h"
 
@@ -35,7 +35,7 @@ int last_val = 0;
 
 void setupDoubleTapInterrupt()
 {
-  // uint8_t error = 0;
+  uint8_t error = 0;
   uint8_t dataToWrite = 0;
 
   // Double Tap Config
@@ -200,13 +200,13 @@ void loop()
       // instead of if(true)...
       if (true)
       { // check for new data
-        imuCharacteristic.setValue(CMD[5]);
+        imuCharacteristic.setValue(CMD[1]);
         delay(1000);
       }
       // auch wenn mit einem client connected ist soll er in den deep sleep fallen können
       seeed_deep_sleep();
     }
-
+    imuCharacteristic.setValue(CMD[0]);
     // when the central disconnects, print it out:
     Serial.print("Device disconnected: ");
     Serial.println(client.address());

@@ -24,10 +24,6 @@ static BLEAddress *pServerAddress;
 // Characteristicd that we want to read
 static BLERemoteCharacteristic *imuCharacteristic;
 
-// TODO: kann vielleicht raus Activate notify
-// const uint8_t notificationOn[] = {0x1, 0x0};
-// const uint8_t notificationOff[] = {0x0, 0x0};
-
 // Variables to store imu values
 int imuData;
 boolean newData = false;
@@ -100,7 +96,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
   void onResult(BLEAdvertisedDevice advertisedDevice)
   {
     Serial.printf("%s \n", advertisedDevice.toString().c_str());
-    Serial.printf("%s \n", advertisedDevice.getServiceUUID().toString());
+    // Serial.printf("%s \n", advertisedDevice.getServiceUUID().toString());
     if (advertisedDevice.getServiceUUID().toString() == imuServiceUUID.toString())
     {                                                                 // Check if the name of the advertiser matches
       advertisedDevice.getScan()->stop();                             // Scan can be stopped, we found what we are looking for
@@ -223,8 +219,6 @@ void loop()
   if (newData)
   {
     newData = false;
-    // TODO: send the data as a CMD to the quadrocopter
-    Serial.println(imuData);
     // only send data to the drone when connected
     if (wifiConnected)
     {
@@ -234,9 +228,14 @@ void loop()
         sendCMD(CMD::INIT);
         droneInit = true;
       }
-      // TODO: send the command that is send through imuData
-      sendCMD(CMD::START);
+      CMD recivedCMD = CMD(imuData);
+      sendCMD(CMD(recivedCMD));
     }
+    delay(POLLING_RATE);
+  }
+  else
+  {
+    sendCMD(CMD::IDLE);
     delay(POLLING_RATE);
   }
 }
