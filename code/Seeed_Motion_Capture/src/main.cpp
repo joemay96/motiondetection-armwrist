@@ -25,7 +25,7 @@ Gyroskop ist für Start der Bewegungswahrnehmung eingentlich egal. Grundsätzlic
 LSM6DS3 IMU(I2C_MODE, 0x6A); // I2C device address 0x6A
 float aX, aY, aZ, gX, gY, gZ;
 // TODO: Vielleicht mehrere verschiedene thresholds für alle Achsen X, Y und Z
-const float accelerationThreshold = 1.85; // threshold of significant in G's
+const float accelerationThreshold = 2.3; // threshold of significant in G's
 
 const int numSamples = 199;
 int samplesRead = numSamples;
@@ -93,9 +93,13 @@ void loop()
   {
     // read the acceleration data
     // TODO: Überlegen ob ich hier wirklich die Filter überhaupt anwenden möchte
-    float aX = SF1eFilterDo(aXFilter, IMU.readFloatAccelX());
-    float aY = SF1eFilterDo(aYFilter, IMU.readFloatAccelY());
-    float aZ = SF1eFilterDo(aZFilter, IMU.readFloatAccelZ());
+    // float aX = SF1eFilterDo(aXFilter, IMU.readFloatAccelX());
+    // float aY = SF1eFilterDo(aYFilter, IMU.readFloatAccelY());
+    // float aZ = SF1eFilterDo(aZFilter, IMU.readFloatAccelZ());
+
+    aX = IMU.readFloatAccelX();
+    aY = IMU.readFloatAccelY();
+    aZ = IMU.readFloatAccelZ();
 
     // float gX = SF1eFilterDo(aXFilter, IMU.readFloatGyroX());
     // float gY = SF1eFilterDo(aXFilter, IMU.readFloatGyroY() + 1.4);
@@ -138,22 +142,22 @@ void loop()
     */
 
     // print the data in CSV format
-    Serial.print(SF1eFilterDo(aXFilter, IMU.readFloatAccelX()), 3);
+    Serial.print(IMU.readFloatAccelX(), 3);
     // Serial.print(IMU.readFloatAccelX(), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(aYFilter, IMU.readFloatAccelY()), 3);
+    Serial.print(IMU.readFloatAccelY(), 3);
     // Serial.print(IMU.readFloatAccelY(), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(aZFilter, IMU.readFloatAccelZ()), 3);
+    Serial.print(IMU.readFloatAccelZ(), 3);
     // Serial.print(IMU.readFloatAccelZ(), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gXFilter, IMU.readFloatGyroX()), 3);
+    Serial.print(IMU.readFloatGyroX(), 3);
     // Serial.print(IMU.readFloatGyroX(), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gYFilter, IMU.readFloatGyroY()), 3);
+    Serial.print(IMU.readFloatGyroY(), 3);
     // Serial.print(IMU.readFloatGyroY(), 3);
     Serial.print(',');
-    Serial.print(SF1eFilterDo(gZFilter, IMU.readFloatGyroZ()), 3);
+    Serial.print(IMU.readFloatGyroZ(), 3);
     // Serial.print(IMU.readFloatGyroZ(), 3);
     Serial.println();
 

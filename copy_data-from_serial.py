@@ -2,7 +2,7 @@ import serial
 import sys
 
 comPort = "/dev/ttyACM0"
-logFile = "down.csv"
+logFile = "left.csv"
 ser = serial.Serial(comPort, 9600, timeout=0)
 ser.flushInput()
 
