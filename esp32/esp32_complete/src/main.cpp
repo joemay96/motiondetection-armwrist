@@ -183,14 +183,14 @@ void sendCMD(CMD cmd)
 void setup()
 {
   // Start serial communication
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Start ESP32 BLE");
 
   // Starting the whole BLE Connection process
   startBLEConnection();
+  connectToWiFi(networkName);
 
   Serial.println("Start WiFi connection to drone");
-  connectToWiFi(networkName);
 }
 
 void loop()
@@ -231,6 +231,10 @@ void loop()
       CMD recivedCMD = CMD(imuData);
       sendCMD(CMD(recivedCMD));
     }
+    else
+    {
+      droneInit = false;
+    }
     delay(POLLING_RATE);
   }
   else
@@ -238,4 +242,5 @@ void loop()
     sendCMD(CMD::IDLE);
     delay(POLLING_RATE);
   }
+  // sendCMD(CMD::INIT);
 }
