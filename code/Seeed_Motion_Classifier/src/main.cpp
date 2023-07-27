@@ -174,29 +174,29 @@ void loop()
 				Serial.print(GESTURES[i]);
 				Serial.print(": ");
 				Serial.println(tflOutputTensor->data.f[i], 6);
-				if (tflOutputTensor->data.f[i] >= 0.65)
-				{
-					// "up",
-					// "land",
-					// "left",
-					// "right",
-					if (i == 0)
-					{
-						imuCharacteristic.setValue(CMD[2]);
-					}
-					else if (i == 1)
-					{
-						imuCharacteristic.setValue(CMD[3]);
-					}
-					else if (i == 2)
-					{
-						imuCharacteristic.setValue(CMD[6]);
-					}
-					else if (i == 3)
-					{
-						imuCharacteristic.setValue(CMD[7]);
-					}
-				}
+				// if (tflOutputTensor->data.f[i] >= 0.65)
+				// {
+				// "up",
+				// "land",
+				// "left",
+				// "right",
+				// if (i == 0)
+				// {
+				// 	imuCharacteristic.setValue(CMD[2]);
+				// }
+				// else if (i == 1)
+				// {
+				// 	imuCharacteristic.setValue(CMD[3]);
+				// }
+				// else if (i == 2)
+				// {
+				// 	imuCharacteristic.setValue(CMD[6]);
+				// }
+				// else if (i == 3)
+				// {
+				// 	imuCharacteristic.setValue(CMD[7]);
+				// }
+				// }
 			}
 			Serial.println();
 		}

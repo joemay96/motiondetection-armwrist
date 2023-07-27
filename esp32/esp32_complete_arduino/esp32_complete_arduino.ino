@@ -187,14 +187,14 @@ void sendCMD(CMD cmd)
 void setup()
 {
   // Start serial communication
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Start ESP32 BLE");
+  connectToWiFi(networkName);
 
   // Starting the whole BLE Connection process
   startBLEConnection();
 
   Serial.println("Start WiFi connection to drone");
-  connectToWiFi(networkName);
 }
 
 void loop()

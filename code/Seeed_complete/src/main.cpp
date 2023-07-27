@@ -208,7 +208,7 @@ void motion_detection()
   float aX, aY, aZ, gX, gY, gZ;
 
   // wait for significant motion
-  while (samplesRead == numSamples)
+  if (samplesRead == numSamples)
   {
     // read the acceleration data
     aX = SF1eFilterDo(aXFilter, imu.readFloatAccelX());
@@ -217,13 +217,14 @@ void motion_detection()
 
     // sum up the absolutes
     float aSum = fabs(aX) + fabs(aY) + fabs(aZ);
+    Serial.print(aSum);
 
     // check if it's above the threshold
     if (aSum >= accelerationThreshold)
     {
       // reset the sample read count
       samplesRead = 0;
-      break;
+      return;
     }
   }
 
@@ -294,7 +295,6 @@ void motion_detection()
           }
         }
       }
-      Serial.println();
     }
   }
 }
@@ -383,27 +383,32 @@ void loop()
     Serial.print("Connected to device: ");
     // print the device's MAC address:
     Serial.println(client.address());
+    Serial.println(client.deviceName());
 
     // while the device is connected send IMU data
     while (client.connected())
     {
+      Serial.println("client connected");
       // TODO: when connecting all scripts - here the motion recognition starts
       //! Here the Motion Recognition later takes place and the enum value will be send to the other device
       //! Check if a new value was recognized
       // new_val != last_val
       // instead of if(true)...
-      if (true)
-      { // check for new data
-        imuCharacteristic.setValue(CMD[1]);
-        delay(1000);
-      }
+      motion_detection();
+      // if (true)
+      // { // check for new data
+      //   imuCharacteristic.setValue(CMD[1]);
+      //   delay(1000);
+      // }
       // auch wenn mit einem client connected ist soll er in den deep sleep fallen können
       //! seeed_deep_sleep();
+      delay(100);
     }
-    imuCharacteristic.setValue(CMD[0]);
+    imuCharacteristic.setValue(CMD[3]);
     // when the central disconnects, print it out:
     Serial.print("Device disconnected: ");
     Serial.println(client.address());
   }
+  Serial.println("No Client connected");
   delay(500);
 }

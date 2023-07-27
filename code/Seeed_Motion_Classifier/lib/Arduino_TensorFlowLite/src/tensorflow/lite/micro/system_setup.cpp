@@ -20,7 +20,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 
 #if defined(ARDUINO) && !defined(ARDUINO_ARDUINO_NANO33BLE) && !defined(ARDUINO_SEEED_XIAO_NRF52840_SENSE)
-// Das hier habe ich verändert
 // #define ARDUINO_EXCLUDE_CODE
 #endif // defined(ARDUINO) && !defined(ARDUINO_ARDUINO_NANO33BLE)
 
@@ -42,12 +41,12 @@ extern "C" void DebugLog(const char *s) { DEBUG_SERIAL_OBJECT.print(s); }
 namespace tflite
 {
 
-  constexpr ulong kSerialMaxInitWait = 4000; // milliseconds
+  constexpr long kSerialMaxInitWait = 4000; // milliseconds
 
   void InitializeTarget()
   {
     DEBUG_SERIAL_OBJECT.begin(9600);
-    ulong start_time = millis();
+    long start_time = millis();
     while (!DEBUG_SERIAL_OBJECT)
     {
       // allow for Arduino IDE Serial Monitor synchronization
@@ -67,7 +66,7 @@ namespace test_over_serial
   void SerialChangeBaudRate(const int baud)
   {
     DEBUG_SERIAL_OBJECT.begin(baud);
-    ulong start_time = millis();
+    long start_time = millis();
     while (!DEBUG_SERIAL_OBJECT)
     {
       // allow for Arduino IDE Serial Monitor synchronization
@@ -106,7 +105,7 @@ namespace test_over_serial
       _ring_buffer.clear();
     }
 
-    ulong start_time = millis();
+    long start_time = millis();
 
     while (true)
     {
@@ -138,7 +137,7 @@ namespace test_over_serial
         // wait forever
         continue;
       }
-      else if (millis() - start_time >= static_cast<ulong>(timeout))
+      else if (millis() - start_time >= static_cast<long>(timeout))
       {
         // timeout
         return std::make_pair(0UL, reinterpret_cast<char *>(NULL));

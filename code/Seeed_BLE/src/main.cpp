@@ -24,6 +24,8 @@ void initBLE()
       ;
   }
 
+  Serial.print("BLE Started");
+
   // set advertised local name and service UUID:
   BLE.setDeviceName(bleServerName);
   BLE.setLocalName(bleServerName);
@@ -48,8 +50,38 @@ void initBLE()
 
 void setup()
 {
-  Serial.begin(115200);
-  initBLE();
+  Serial.begin(9600);
+  Serial.println("Beginning BLE");
+  // initBLE();
+  if (!BLE.begin())
+  {
+    Serial.println("starting Seeed BLE failed!");
+    while (1)
+      ;
+  }
+
+  Serial.print("BLE Started");
+
+  // set advertised local name and service UUID:
+  BLE.setDeviceName(bleServerName);
+  BLE.setLocalName(bleServerName);
+  BLE.setAdvertisedService(imuService);
+  // add the characteristic to the service
+  imuService.addCharacteristic(imuCharacteristic);
+
+  //* sending an initial value?
+  // imuCharacteristic.writeValue(0);
+
+  // add service
+  BLE.addService(imuService);
+
+  // start advertising
+  BLE.advertise();
+
+  // print address
+  Serial.print("Address: ");
+  Serial.println(BLE.address());
+  Serial.println("XIAO nRF52840 Peripheral");
 }
 
 void loop()
@@ -84,4 +116,5 @@ void loop()
     Serial.print("Device disconnected: ");
     Serial.println(client.address());
   }
+  Serial.println("Nothing connected!");
 }

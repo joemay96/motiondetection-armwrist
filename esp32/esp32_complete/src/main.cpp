@@ -53,6 +53,8 @@ boolean droneInit = false;
 static void imuNotifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
   imuData = (int)*pData;
+  Serial.println("Befehl gesendet");
+  Serial.println(imuData);
   newData = true;
 }
 
@@ -116,7 +118,7 @@ void startBLEConnection()
   BLEScan *pBLEScan = BLEDevice::getScan();
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true);
-  pBLEScan->start(59);
+  pBLEScan->start(30);
   //* falls das obere nicht klappt
   pBLEScan->setInterval(100);
   pBLEScan->setWindow(99);
@@ -180,6 +182,8 @@ void sendCMD(CMD cmd)
   udp.endPacket();
 }
 
+unsigned long long time_stamp = 0;
+
 void setup()
 {
   // Start serial communication
@@ -187,7 +191,7 @@ void setup()
   Serial.println("Start ESP32 BLE");
 
   // Starting the whole BLE Connection process
-  startBLEConnection();
+  // startBLEConnection();
   connectToWiFi(networkName);
 
   Serial.println("Start WiFi connection to drone");
@@ -203,44 +207,65 @@ void loop()
   if (doConnect)
   {
     // pServerAdress gets populated in setup()
-    if (connectToServer(*pServerAddress))
-    {
-      Serial.println("Connected to IMU Wristband");
-      bleConnected = true;
-    }
-    else
-    {
-      // TODO: change to run the setup code again
-      Serial.println("Failed to connect to the server; Restart your device.");
-    }
+    // if (connectToServer(*pServerAddress))
+    // {
+    //   Serial.println("Connected to IMU Wristband");
+    //   bleConnected = true;
+    // }
+    // else
+    // {
+    //   // TODO: change to run the setup code again
+    //   Serial.println("Failed to connect to the server; Restart your device.");
+    // }
     doConnect = false;
   }
   // we are connected and a new CMD got received
-  if (newData)
+  // if (true) //! newData
+  // {
+  //! newData = false;
+  // only send data to the drone when connected
+  if (wifiConnected)
   {
-    newData = false;
-    // only send data to the drone when connected
-    if (wifiConnected)
+    if (!droneInit)
     {
-      if (!droneInit)
-      {
-        // send init command to the drone
-        sendCMD(CMD::INIT);
-        droneInit = true;
-      }
-      CMD recivedCMD = CMD(imuData);
-      sendCMD(CMD(recivedCMD));
+      time_stamp = millis();
+      // send init command to the drone
+      sendCMD(CMD::INIT);
+      droneInit = true;
     }
-    else
+    // CMD recivedCMD = CMD(imuData);
+    //! sendCMD(CMD(recivedCMD));
+    if (millis() - time_stamp <= 4000)
     {
-      droneInit = false;
+      sendCMD(CMD::START);
+    }
+    else if (millis() - time_stamp <= 6000)
+    {
+      sendCMD(CMD::TURN_L);
+    }
+    else if (millis() - time_stamp <= 8000)
+    {
+      sendCMD(CMD::TURN_R);
+    }
+    else if (millis() - time_stamp <= 9000)
+    {
+      sendCMD(CMD::BWD);
+    }
+    else if (millis() - time_stamp <= 10000)
+    {
+      sendCMD(CMD::FWD);
+    }
+    else if (millis() - time_stamp <= 12000)
+    {
+      sendCMD(CMD::LAND);
     }
     delay(POLLING_RATE);
   }
-  else
-  {
-    sendCMD(CMD::IDLE);
-    delay(POLLING_RATE);
-  }
+  // else
+  // {
+  // droneInit = false;
+  // sendCMD(CMD::INIT);
+  // }
+  // }
   // sendCMD(CMD::INIT);
 }
