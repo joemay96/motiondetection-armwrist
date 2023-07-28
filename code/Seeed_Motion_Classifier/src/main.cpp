@@ -67,8 +67,11 @@ void initFilters()
 	SF1eFilterInit(gZFilter);
 }
 
+int j;
+
 void setup()
 {
+	j = 0;
 	Serial.begin(9600);
 	while (!Serial)
 		;
